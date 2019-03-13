@@ -5,7 +5,9 @@ namespace Quantum.Kata.BasicGates {
     
     open Microsoft.Quantum.Primitive;
     open Microsoft.Quantum.Canon;
-    
+    open Microsoft.Quantum.Extensions.Diagnostics; 
+    open Microsoft.Quantum.Extensions.Convert;
+    open Microsoft.Quantum.Extensions.Math;
     
     //////////////////////////////////////////////////////////////////
     // Welcome!
@@ -48,7 +50,7 @@ namespace Quantum.Kata.BasicGates {
             // Type X(q);
             // Then rebuild the project and rerun the tests - T11_StateFlip_Test should now pass!
             
-            // ...
+            X(q); 
         }
         
         adjoint self;
@@ -66,7 +68,7 @@ namespace Quantum.Kata.BasicGates {
     operation BasisChange (q : Qubit) : Unit {
         
         body (...) {
-            // ...
+            H(q); 
         }
         
         adjoint self;
@@ -79,7 +81,7 @@ namespace Quantum.Kata.BasicGates {
     operation SignFlip (q : Qubit) : Unit {
         
         body (...) {
-            // ...
+            Z(q); 
         }
         
         adjoint self;
@@ -97,7 +99,10 @@ namespace Quantum.Kata.BasicGates {
     operation AmplitudeChange (q : Qubit, alpha : Double) : Unit {
         
         body (...) {
-            // ...
+            
+            Ry(2.0 * alpha, q); 
+            
+
         }
         
         adjoint invert;
@@ -110,7 +115,9 @@ namespace Quantum.Kata.BasicGates {
     operation PhaseFlip (q : Qubit) : Unit {
         
         body (...) {
-            // ...
+            // https://algassert.com/quirk#circuit={%22cols%22:[[%22H%22],[%22Z^t%22]]}
+            S(q);
+            // alternatively Rz(0.5 * PI(), q);
         }
         
         adjoint invert;
@@ -128,7 +135,7 @@ namespace Quantum.Kata.BasicGates {
     operation PhaseChange (q : Qubit, alpha : Double) : Unit {
         
         body (...) {
-            // ...
+            Rz(alpha, q); 
         }
         
         adjoint invert;
@@ -141,7 +148,7 @@ namespace Quantum.Kata.BasicGates {
     operation BellStateChange1 (qs : Qubit[]) : Unit {
         
         body (...) {
-            // ...
+            Z(qs[1]); 
         }
         
         adjoint invert;
@@ -154,7 +161,7 @@ namespace Quantum.Kata.BasicGates {
     operation BellStateChange2 (qs : Qubit[]) : Unit {
         
         body (...) {
-            // ...
+            
         }
         
         adjoint invert;
