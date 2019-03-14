@@ -161,7 +161,7 @@ namespace Quantum.Kata.BasicGates {
     operation BellStateChange2 (qs : Qubit[]) : Unit {
         
         body (...) {
-            
+            X(qs[1]); 
         }
         
         adjoint invert;
@@ -174,7 +174,8 @@ namespace Quantum.Kata.BasicGates {
     operation BellStateChange3 (qs : Qubit[]) : Unit {
         
         body (...) {
-            // ...
+            X(qs[1]); 
+            Z(qs[1]); 
         }
         
         adjoint invert;
