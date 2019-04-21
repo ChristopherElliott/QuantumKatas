@@ -33,10 +33,7 @@ namespace Quantum.Kata.Superposition {
     operation PlusState (qs : Qubit[]) : Unit {
         // Hadamard gate H will convert |0⟩ state to |+⟩ state.
         // The first qubit of the array can be accessed as qs[0].
-        // Type the following: H(qs[0]);
-        // Then rebuild the project and rerun the tests - T01_PlusState_Test should now pass!
-
-        // ...
+        H(qs[0]);
     }
     
     
@@ -46,7 +43,8 @@ namespace Quantum.Kata.Superposition {
     operation MinusState (qs : Qubit[]) : Unit {
         // In this task, as well as in all subsequent ones, you have to come up with the solution yourself.
             
-        // ...
+        H(qs[0]);
+        Z(qs[0]);
     }
     
     
@@ -59,7 +57,7 @@ namespace Quantum.Kata.Superposition {
         // Hint: Experiment with rotation gates from Microsoft.Quantum.Primitive namespace.
         // Note that all rotation operators rotate the state by _half_ of its angle argument.
 
-        // ...
+        Ry(2.0 * alpha, qs[0]); 
     }
     
     
@@ -71,7 +69,8 @@ namespace Quantum.Kata.Superposition {
         // You don't need to modify them. Feel free to remove them, this won't cause your code to fail.
         AssertIntEqual(Length(qs), 2, "The array should have exactly 2 qubits.");
 
-        // ...
+        H(qs[0]); 
+        H(qs[1]); 
     }
     
     
@@ -84,7 +83,20 @@ namespace Quantum.Kata.Superposition {
         AssertIntEqual(Length(qs), 2, "The array should have exactly 2 qubits.");
 
         // Hint: Is this state separable?
-        // ...
+        // No
+
+        X(qs[1]); 
+        H(qs[0]); 
+        H(qs[1]); 
+
+
+        CY(qs[1], qs[0]); 
+        
+        X(qs[1]); 
+        CZ(qs[1], qs[0]); 
+        X(qs[1]); 
+
+
     }
     
     
@@ -93,6 +105,9 @@ namespace Quantum.Kata.Superposition {
     // Goal: create a Bell state |Φ⁺⟩ = (|00⟩ + |11⟩) / sqrt(2) on these qubits.
     operation BellState (qs : Qubit[]) : Unit {
         // ...
+        H(qs[0]); 
+
+        CNOT(qs[0], qs[1]);  
     }
     
     
@@ -107,6 +122,25 @@ namespace Quantum.Kata.Superposition {
     //       3: |Ψ⁻⟩ = (|01⟩ - |10⟩) / sqrt(2)
     operation AllBellStates (qs : Qubit[], index : Int) : Unit {
         // ...
+        H(qs[0]); 
+
+        CNOT(qs[0], qs[1]);  
+
+        if (index == 1)
+        {
+            Z(qs[1]); 
+        }
+        elif (index == 2)
+        {
+            X(qs[1]); 
+        }
+        elif (index == 3)
+        {
+            X(qs[1]); 
+            Z(qs[1]); 
+        }
+
+
     }
     
     
@@ -115,8 +149,13 @@ namespace Quantum.Kata.Superposition {
     // Goal: create a GHZ state (|0...0⟩ + |1...1⟩) / sqrt(2) on these qubits.
     operation GHZ_State (qs : Qubit[]) : Unit {
         // Hint: N can be found as Length(qs).
-
+// https://algassert.com/quirk#circuit={%22cols%22:[[%22H%22],[%22%E2%80%A2%22,%22X%22,%22X%22,%22X%22]]}
+        H(qs[0]); 
         // ...
+        for (i in 1 .. Length(qs)-1)
+        {
+            CNOT(qs[0], qs[i]); 
+        }
     }
     
     
@@ -125,7 +164,12 @@ namespace Quantum.Kata.Superposition {
     // Goal: create an equal superposition of all basis vectors from |0...0⟩ to |1...1⟩
     // (i.e. state (|0...0⟩ + ... + |1...1⟩) / sqrt(2^N) ).
     operation AllBasisVectorsSuperposition (qs : Qubit[]) : Unit {
-        // ...
+        
+        for (i in 0 .. Length(qs)-1)
+        {
+            H(qs[i]); 
+        }
+
     }
     
     
@@ -138,13 +182,22 @@ namespace Quantum.Kata.Superposition {
     // You are guaranteed that the qubit array and the bit string have the same length.
     // You are guaranteed that the first bit of the bit string is true.
     // Example: for bit string = [true, false] the qubit state required is (|00⟩ + |10⟩) / sqrt(2).
+    // Example: for bit string = [true, false, true] the qubit state required is (|000⟩ + |101⟩) / sqrt(2).
     operation ZeroAndBitstringSuperposition (qs : Qubit[], bits : Bool[]) : Unit {
         // The following lines enforce the constraints on the input that you are given.
         // You don't need to modify them. Feel free to remove them, this won't cause your code to fail.
         AssertIntEqual(Length(bits), Length(qs), "Arrays should have the same length");
         AssertBoolEqual(bits[0], true, "First bit of the input bit string should be set to true");
 
-        // ...
+        H(qs[0]); 
+
+        for (i in 1 .. Length(qs)-1)
+        {
+            if (bits[i])
+            {
+                CNOT(qs[0], qs[i]); 
+            }
+        }
     }
     
     
@@ -160,6 +213,60 @@ namespace Quantum.Kata.Superposition {
     // and that the bit strings will differ in at least one bit.
     operation TwoBitstringSuperposition (qs : Qubit[], bits1 : Bool[], bits2 : Bool[]) : Unit {
         // ...
+
+        mutable splitA = -1; 
+        mutable splitB = -1; 
+
+        for (i in 0 .. Length(qs)-1)
+        {
+            if (bits1[i] && bits2[i])
+            {
+                // State |1⟩ 
+                X(qs[i]); 
+            }
+            elif (bits1[i])
+            {
+                if (splitA > -1)
+                {
+                    CNOT(qs[splitA], qs[i]); 
+                }
+                elif (splitB > -1)
+                {
+                    X(qs[splitB]); 
+                    CNOT(qs[splitB], qs[i]); 
+                    X(qs[splitB]); 
+                }
+                else 
+                {
+                    // First 
+                    set splitA = i; 
+                    H(qs[splitA]); 
+                }
+            }
+            elif (bits2[i])
+            {
+                if (splitB > -1)
+                {
+                    CNOT(qs[splitB], qs[i]); 
+                }
+                elif (splitA > -1)
+                {
+                    X(qs[splitA]); 
+                    CNOT(qs[splitA], qs[i]); 
+                    X(qs[splitA]); 
+                }
+                else
+                {
+                    // First 
+                    set splitB = i; 
+                    H(qs[splitB]); 
+                }
+            }
+            else
+            {
+                // Identity 
+            }
+        }
     }
     
     

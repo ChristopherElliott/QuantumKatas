@@ -197,7 +197,7 @@ namespace Quantum.Kata.BasicGates {
     operation TwoQubitGate1 (qs : Qubit[]) : Unit {
         
         body (...) {
-            // ...
+            CNOT(qs[0], qs[1]); 
         }
         
         adjoint self;
@@ -213,7 +213,8 @@ namespace Quantum.Kata.BasicGates {
     operation TwoQubitGate2 (qs : Qubit[]) : Unit {
         
         body (...) {
-            // ...
+           
+            Controlled Z([qs[0]], qs[1]); 
         }
         
         adjoint self;
@@ -230,8 +231,12 @@ namespace Quantum.Kata.BasicGates {
             // Hint: this task can be solved using one primitive gate;
             // as an exercise, try to express the solution using several
             // (possibly controlled) Pauli gates.
-            
-            // ...
+            // SWAP(qs[0], qs[1]); 
+
+            CNOT(qs[0], qs[1]); 
+            CNOT(qs[1], qs[0]); 
+            CNOT(qs[0], qs[1]);  
+
         }
         
         adjoint self;
@@ -247,7 +252,7 @@ namespace Quantum.Kata.BasicGates {
     operation ToffoliGate (qs : Qubit[]) : Unit {
         
         body (...) {
-            // ...
+            CCNOT(qs[0], qs[1], qs[2]); 
         }
         
         adjoint self;
@@ -262,7 +267,8 @@ namespace Quantum.Kata.BasicGates {
     operation FredkinGate (qs : Qubit[]) : Unit {
         
         body (...) {
-            // ...
+        
+            (Controlled SWAP)([qs[0]], (qs[1], qs[2])); 
         }
         
         adjoint self;
