@@ -288,6 +288,8 @@ namespace Quantum.Kata.Superposition {
     // Example: for N = 3, W state is (|100⟩ + |010⟩ + |001⟩) / sqrt(3).
     operation WState_Arbitrary (qs : Qubit[]) : Unit {
         
+        // https://algassert.com/quirk#circuit={%22cols%22:[[%22~5mob%22],[%22Chance4%22],[%22%E2%97%A6%22,%22~1b3%22],[%22Chance4%22],[%22%E2%97%A6%22,%22%E2%97%A6%22,%22~36fm%22],[%22Chance4%22],[%22%E2%97%A6%22,%22%E2%97%A6%22,%22%E2%97%A6%22,%22~g1ct%22],[%22Chance4%22]],%22gates%22:[{%22id%22:%22~1b3%22,%22name%22:%22G(1/3)%22,%22matrix%22:%22{{%E2%88%9A%E2%85%94,-%E2%88%9A%E2%85%93},{%E2%88%9A%E2%85%93,%E2%88%9A%E2%85%94}}%22},{%22id%22:%22~5mob%22,%22name%22:%22G(1/4)%22,%22matrix%22:%22{{%E2%88%9A%C2%BE,-%C2%BD},{%C2%BD,%E2%88%9A%C2%BE}}%22},{%22id%22:%22~36fm%22,%22name%22:%22G(1/2)%22,%22matrix%22:%22{{%E2%88%9A%C2%BD,-%E2%88%9A%C2%BD},{%E2%88%9A%C2%BD,%E2%88%9A%C2%BD}}%22},{%22id%22:%22~g1ct%22,%22name%22:%22G(1)%22,%22matrix%22:%22{{0,-1},{1,0}}%22}]}
+
         let n = ToDouble(Length(qs)); 
 
         Rx(2.0 * ArcSin(1.0/Sqrt(n)), qs[0]);         
