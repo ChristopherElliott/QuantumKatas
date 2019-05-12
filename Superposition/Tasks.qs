@@ -8,7 +8,6 @@ namespace Quantum.Kata.Superposition {
     open Microsoft.Quantum.Extensions.Convert;
     open Microsoft.Quantum.Extensions.Math;
     
-    
     //////////////////////////////////////////////////////////////////
     // Welcome!
     //////////////////////////////////////////////////////////////////
@@ -276,9 +275,9 @@ namespace Quantum.Kata.Superposition {
     // W state is an equal superposition of all basis states on N qubits of Hamming weight 1.
     // Example: for N = 4, W state is (|1000⟩ + |0100⟩ + |0010⟩ + |0001⟩) / 2.
     operation WState_PowerOfTwo (qs : Qubit[]) : Unit {
-            // Hint: you can use Controlled modifier to perform arbitrary controlled gates.
+        // Hint: you can use Controlled modifier to perform arbitrary controlled gates.
 
-            // ...
+        WState_Arbitrary(qs); 
     }
     
     
@@ -288,7 +287,17 @@ namespace Quantum.Kata.Superposition {
     // W state is an equal superposition of all basis states on N qubits of Hamming weight 1.
     // Example: for N = 3, W state is (|100⟩ + |010⟩ + |001⟩) / sqrt(3).
     operation WState_Arbitrary (qs : Qubit[]) : Unit {
-            // ...
+        
+        let n = ToDouble(Length(qs)); 
+
+        Rx(2.0 * ArcSin(1.0/Sqrt(n)), qs[0]);         
+
+        for (i in 1 .. Length(qs)-1)
+        {
+            ApplyToEach(X, qs[0..i-1]);
+            (Controlled Rx)(qs[0..i-1], (2.0 * ArcSin(1.0/Sqrt(n-ToDouble(i))), qs[i]));         
+            ApplyToEach(X, qs[0..i-1]);
+        }
     }
     
 }
