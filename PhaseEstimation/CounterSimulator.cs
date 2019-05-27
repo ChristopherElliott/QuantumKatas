@@ -9,6 +9,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.Quantum.Simulation.Common;
 using Microsoft.Quantum.Simulation.Core;
 using Microsoft.Quantum.Simulation.Simulators;
 
@@ -94,7 +95,7 @@ namespace Quantum.Kata.PhaseEstimation
         #endregion
 
         #region Counting allocated qubits
-        new public class Allocate : Microsoft.Quantum.Simulation.Simulators.SimulatorBase.Allocate
+        new public class Allocate : SimulatorBase.Allocate
         {
             CounterSimulator _sim;
 
@@ -113,7 +114,7 @@ namespace Quantum.Kata.PhaseEstimation
                 return base.Apply();
             }
 
-            public override QArray<Qubit> Apply(long count)
+            public override IQArray<Qubit> Apply(long count)
             {
                 _sim._qubitsAllocated += count;
                 if (_sim._qubitsAllocated > _sim._maxQubitsAllocated)
@@ -124,7 +125,7 @@ namespace Quantum.Kata.PhaseEstimation
             }
         }
 
-        new public class Release : Microsoft.Quantum.Simulation.Simulators.SimulatorBase.Release
+        new public class Release : SimulatorBase.Release
         {
             CounterSimulator _sim;
 
@@ -139,7 +140,7 @@ namespace Quantum.Kata.PhaseEstimation
                 base.Apply(q);
             }
 
-            public override void Apply(QArray<Qubit> qubits)
+            public override void Apply(IQArray<Qubit> qubits)
             {
                 _sim._qubitsAllocated -= qubits.Length;
                 base.Apply(qubits);

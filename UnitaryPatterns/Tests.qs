@@ -9,12 +9,11 @@
 
 namespace Quantum.Kata.UnitaryPatterns {
     
-    open Microsoft.Quantum.Primitive;
+    open Microsoft.Quantum.Arithmetic;
+    open Microsoft.Quantum.Intrinsic;
     open Microsoft.Quantum.Canon;
-    open Microsoft.Quantum.Extensions.Convert;
-    open Microsoft.Quantum.Extensions.Math;
-    open Microsoft.Quantum.Extensions.Testing;
-    open Microsoft.Quantum.Extensions.Diagnostics;
+    open Microsoft.Quantum.Diagnostics;
+    open Microsoft.Quantum.Convert;
     
     
     // ------------------------------------------------------
@@ -25,12 +24,14 @@ namespace Quantum.Kata.UnitaryPatterns {
         let size = 1 <<< N;
         
         //Message($"Testing on {N} qubits");
+
+        // ε is the threshold for probability, which is absolute value squared; the absolute value is bounded by √ε.
         let ε = 0.000001;
         
         using (qs = Qubit[N]) {
             for (k in 0 .. size - 1) {                
                 // Prepare k-th basis vector
-                let binary = BoolArrFromPositiveInt(k, N);
+                let binary = IntAsBoolArray(k, N);
                 
                 //Message($"{k}/{N} = {binary}");
                 // binary is little-endian notation, so the second vector tried has qubit 0 in state 1 and the rest in state 0
@@ -43,20 +44,16 @@ namespace Quantum.Kata.UnitaryPatterns {
                 op(qs);
                 
                 // Make sure the solution didn't use any measurements
-                AssertIntEqual(GetOracleCallsCount(M), 0, "You are not allowed to use measurements in this task");
-                AssertIntEqual(GetOracleCallsCount(Measure), 0, "You are not allowed to use measurements in this task");
+                Fact(GetOracleCallsCount(M) == 0, "You are not allowed to use measurements in this task");
+                Fact(GetOracleCallsCount(Measure) == 0, "You are not allowed to use measurements in this task");
 
                 // Test that the result matches the k-th column
                 // DumpMachine($"C:/Tmp/dump{N}_{k}.txt");
                 for (j in 0 .. size - 1) {                    
                     let nonZero = pattern(size, j, k);
                     
-                    if (nonZero) {                        
-                        AssertProbInt(j, 0.5 + ε, LittleEndian(qs), 0.5);
-                    }
-                    else {                        
-                        AssertProbInt(j, 0.0, LittleEndian(qs), ε);
-                    }
+                    let (expected, tol) = nonZero ? (0.5 + ε, 0.5) | (0.0, ε);
+                    AssertProbInt(j, expected, LittleEndian(qs), tol);
                 }
                 
                 ResetAll(qs);
@@ -92,6 +89,19 @@ namespace Quantum.Kata.UnitaryPatterns {
     
     
     // ------------------------------------------------------
+    function BlockDiagonal_Pattern (size : Int, row : Int, col : Int) : Bool {
+        return row / 2 == col / 2;
+    }
+    
+    
+    operation T03_BlockDiagonal_Test () : Unit {
+        for (n in 2 .. 5) {
+            AssertOperationMatrixMatchesPattern(n, BlockDiagonal, BlockDiagonal_Pattern);
+        }
+    }
+    
+    
+    // ------------------------------------------------------
     function Quarters_Pattern (size : Int, row : Int, col : Int) : Bool {
         // The indices are little-endian, with qubit 0 corresponding to the least significant bit
         // and qubits 1..N-1 corresponding to most significant bits.
@@ -100,7 +110,7 @@ namespace Quantum.Kata.UnitaryPatterns {
     }
     
     
-    operation T03_Quarters_Test () : Unit {
+    operation T04_Quarters_Test () : Unit {
         for (n in 2 .. 5) {
             AssertOperationMatrixMatchesPattern(n, Quarters, Quarters_Pattern);
         }
@@ -116,7 +126,7 @@ namespace Quantum.Kata.UnitaryPatterns {
     }
     
     
-    operation T04_EvenChessPattern_Test () : Unit {
+    operation T05_EvenChessPattern_Test () : Unit {
         for (n in 2 .. 5) {
             AssertOperationMatrixMatchesPattern(n, EvenChessPattern, EvenChessPattern_Pattern);
         }
@@ -132,7 +142,7 @@ namespace Quantum.Kata.UnitaryPatterns {
     }
     
     
-    operation T05_OddChessPattern_Test () : Unit {
+    operation T06_OddChessPattern_Test () : Unit {
         for (n in 2 .. 5) {
             AssertOperationMatrixMatchesPattern(n, OddChessPattern, OddChessPattern_Pattern);
         }
@@ -145,7 +155,7 @@ namespace Quantum.Kata.UnitaryPatterns {
     }
     
     
-    operation T06_Antidiagonal_Test () : Unit {
+    operation T07_Antidiagonal_Test () : Unit {
         for (n in 2 .. 5) {
             AssertOperationMatrixMatchesPattern(n, Antidiagonal, Antidiagonal_Pattern);
         }
@@ -158,7 +168,7 @@ namespace Quantum.Kata.UnitaryPatterns {
     }
     
     
-    operation T07_ChessPattern2x2_Test () : Unit {
+    operation T08_ChessPattern2x2_Test () : Unit {
         for (n in 2 .. 5) {
             AssertOperationMatrixMatchesPattern(n, ChessPattern2x2, ChessPattern2x2_Pattern);
         }
@@ -181,9 +191,112 @@ namespace Quantum.Kata.UnitaryPatterns {
     }
     
     
-    operation T08_TwoPatterns_Test () : Unit {
+    operation T09_TwoPatterns_Test () : Unit {
         for (n in 2 .. 5) {
             AssertOperationMatrixMatchesPattern(n, TwoPatterns, TwoPatterns_Pattern);
+        }
+    }
+
+
+    // ------------------------------------------------------
+    function IncreasingBlocks_Pattern (size : Int, row : Int, col : Int) : Bool {
+        // top right and bottom left quarters are all 0
+        let s2 = size / 2;
+        if (row / s2 != col / s2) {
+            return false;
+        }
+        if (row / s2 == 0) {
+            // top left quarter is the same pattern for s2, except for the start of the recursion
+            if (s2 == 1) {
+                return true;
+            }
+            return IncreasingBlocks_Pattern(s2, row, col);
+        }
+        // bottom right quarter is all 1
+        return true;
+    }
+    
+    
+    operation T10_IncreasingBlocks_Test () : Unit {
+        for (n in 2 .. 5) {
+            AssertOperationMatrixMatchesPattern(n, IncreasingBlocks, IncreasingBlocks_Pattern);
+        }
+    }
+    
+    
+    // ------------------------------------------------------
+    function XWing_Fighter_Pattern (size : Int, row : Int, col : Int) : Bool {
+        return row == col or row == (size - 1) - col;
+    }
+    
+    
+    operation T11_XWing_Fighter_Test () : Unit {
+        for (n in 2 .. 5) {
+            AssertOperationMatrixMatchesPattern(n, XWing_Fighter, XWing_Fighter_Pattern);
+        }
+    }
+    
+
+    // ------------------------------------------------------
+    function Rhombus_Pattern (size : Int, row : Int, col : Int) : Bool {
+        let s2 = size / 2;
+        return row / s2 == col / s2 and row % s2 + col % s2 == s2 - 1 or 
+               row / s2 != col / s2 and row % s2 == col % s2;
+    }
+    
+    
+    operation T12_Rhombus_Test () : Unit {
+        for (n in 2 .. 5) {
+            AssertOperationMatrixMatchesPattern(n, Rhombus, Rhombus_Pattern);
+        }
+    }
+
+
+    // ------------------------------------------------------
+    function TIE_Fighter_Pattern (size : Int, row : Int, col : Int) : Bool {
+        let s2 = size / 2;
+        return row / s2 == 0  and  col / s2 == 0  and  row % s2 + col % s2 == s2 - 2 or 
+               row / s2 == 0  and  col / s2 == 1  and  col % s2 - row % s2 == 1 or 
+               row / s2 == 1  and  col / s2 == 0  and  row % s2 - col % s2 == 1 or 
+               row / s2 == 1  and  col / s2 == 1  and  row % s2 + col % s2 == s2 or 
+               (row == s2 - 1 or row == s2) and (col == s2 - 1 or col == s2);
+    }
+    
+
+    operation T13_TIE_Fighter_Test () : Unit {
+        for (n in 2 .. 5) {
+            AssertOperationMatrixMatchesPattern(n, TIE_Fighter, TIE_Fighter_Pattern);
+        }
+    }
+    
+    
+    // ------------------------------------------------------
+    function Creeper_Pattern (size : Int, row : Int, col : Int) : Bool {
+        let A = [ [ true, true, false, false, false, false, true, true], 
+                  [ true, true, false, false, false, false, true, true], 
+                  [ false, false, false, true, true, false, false, false], 
+                  [ false, false, false, true, true, false, false, false], 
+                  [ false, false, true, false, false, true, false, false], 
+                  [ false, false, true, false, false, true, false, false], 
+                  [ true, true, false, false, false, false, true, true], 
+                  [ true, true, false, false, false, false, true, true] ];
+        return size != 8 ? false | A[row][col];         
+    }
+    
+
+    operation T14_Creeper_Test () : Unit {
+        AssertOperationMatrixMatchesPattern(3, Creeper, Creeper_Pattern);
+    }
+    
+    // ------------------------------------------------------
+    function Hessenberg_Matrix_Pattern (size : Int, row : Int, col : Int) : Bool {
+        return (row - 1) <= col;
+    }
+    
+
+    operation T15_Hessenberg_Matrix_Test () : Unit {
+        for (n in 2 .. 4) {
+            AssertOperationMatrixMatchesPattern(n, Hessenberg_Matrix, Hessenberg_Matrix_Pattern);
         }
     }
 
