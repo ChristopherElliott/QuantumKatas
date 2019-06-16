@@ -7,7 +7,7 @@ namespace Quantum.Kata.Measurements {
     open Microsoft.Quantum.Canon;
     open Microsoft.Quantum.Extensions.Convert;
     open Microsoft.Quantum.Extensions.Math;
-    
+    open Microsoft.Quantum.Extensions.Diagnostics; 
     
     //////////////////////////////////////////////////////////////////
     // Welcome!
@@ -43,7 +43,7 @@ namespace Quantum.Kata.Measurements {
         // Replace the returned expression with (M(q) == One)
         // Then rebuild the project and rerun the tests - T101_IsQubitOne_Test should now pass!
 
-        return false;
+        return (M(q) == One);
     }
     
     
@@ -51,7 +51,12 @@ namespace Quantum.Kata.Measurements {
     // Input: a qubit in an arbitrary state.
     // Goal:  change the state of the qubit to |0⟩.
     operation InitializeQubit (q : Qubit) : Unit {
-        // ...
+        
+        if (M(q) == One)
+        {
+            X(q); 
+        }
+
     }
     
     
@@ -62,7 +67,9 @@ namespace Quantum.Kata.Measurements {
     // The state of the qubit at the end of the operation does not matter.
     operation IsQubitPlus (q : Qubit) : Bool {
         // ...
-        return false;
+        H(q); 
+
+        return M(q) == Zero;
     }
     
     
@@ -75,9 +82,83 @@ namespace Quantum.Kata.Measurements {
     // Output: true if qubit was in |A⟩ state, or false if it was in |B⟩ state.
     // The state of the qubit at the end of the operation does not matter.
     operation IsQubitA (alpha : Double, q : Qubit) : Bool {
-        // ...
-        return false;
+
+ 
+        // Since you don't know the axis, you can't assume which rotation basis is needed...
+        // https://algassert.com/quirk#circuit={%22cols%22:[[%22H%22,%22Y^%C2%BD%22,%22X^%C2%BD%22],[%22Z^t%22]]}
+        //Rx(-2.0 * Sin(alpha/2.0), q); 
+
+        // The fact that they are orthogonal means...
+        // that you can measure one and only destroy half of the information. 
+
+        // Now, what happens if you take the states |𝜓0⟩ and |𝜓1⟩ and apply the adjoint 
+        // of the transformation 𝑈 to them? You know that the state |𝜓0⟩ will be 
+        // transformed to |000⟩, and the state |𝜓1⟩ will be transformed to some other state. 
+        // It doesn't really matter what state it is, it's enough to know that it is orthogonal 
+        // to |000⟩. So to distinguish these states you can measure all qubits after applying 
+        // 𝑈† - if you get all zeroes, you know it was |𝜓0⟩, otherwise it was |𝜓1⟩.
+
+        // Reference: 
+        //#float(sin(1.5707963267949)) # sin(pi/2) = 1.0
+        //# float(cos(1.5707963267949)) # cos(pi/2) = 0
+
+        // e.g. Alpha: 1.5707963267949
+        // |A⟩ =   cos(alpha) * |0⟩ + sin(alpha) * |1⟩
+        // 0:      0       0
+        // 1:      1       0
+        //   OR 
+        // |B⟩ = - sin(alpha) * |0⟩ + cos(alpha) * |1⟩.
+        // 0:      1       0
+        // 1:      0       0
+
+        // let theta = (PI()/2.0)-alpha; 
+        // if (theta > 0.0)
+        // {
+        //     Message($"R by {theta}"); 
+        //     R1(-2.0 * theta, q); 
+
+        //     DumpMachine(); 
+        // }
+
+        // Why Ry? You had to recognize this guy: 
+        //         |A⟩ =   cos(alpha) * |0⟩ + sin(alpha) * |1⟩,
+        //         |B⟩ = - sin(alpha) * |0⟩ + cos(alpha) * |1⟩.
+        // Is the same as the definition of Ry: 
+        // Further, if you intuition is based on the Bloch sphere, you may be confused why 
+        // these are orthogonial therefore if one is 0, the other must be 1 (in the bloch sphere, orthognal means H, not X)
+
+        Ry(-2.0 * alpha, q); 
+        // Aka Adjoint Ry(2.0 * alpha, q); 
+
+        if (M(q) == Zero) 
+        {
+            return true; 
+        }
+        else 
+        {
+            return false; 
+        }      
     }
+
+    // Other ideas? 
+
+        
+        // Use a cnot to copy the value to other qubits you can test. 
+
+        // Joint measurement? 
+
+        // To have two different measurement bases that you pick between. 
+        // The first is as you specified. 
+        // The second is the complementary view where you use (|𝜙⟩,|𝜙′⟩
+
+        // Introduce a POVM. POVMs can have more than 2 measurement operators, 
+        // and are often quite good at saying "the state was definitely not |𝑥⟩", 
+        // so you could make one operator that says "the state definitely was not |𝜓⟩", 
+        // another that says "definitely not |𝜙⟩" and a third just for the sake of completeness.
+
+
+   
+
     
     
     // Task 1.5. |00⟩ or |11⟩ ?
@@ -86,8 +167,13 @@ namespace Quantum.Kata.Measurements {
     //         1 if they were in |11⟩ state.
     // The state of the qubits at the end of the operation does not matter.
     operation ZeroZeroOrOneOne (qs : Qubit[]) : Int {
-        // ...
-        return -1;
+        
+        if (M(qs[0]) == Zero)
+        {
+            return 0; 
+        }
+
+        return 1; 
     }
     
     
@@ -103,8 +189,32 @@ namespace Quantum.Kata.Measurements {
     // (i.e., |10⟩ state corresponds to qs[0] in state |1⟩ and qs[1] in state |0⟩).
     // The state of the qubits at the end of the operation does not matter.
     operation BasisStateMeasurement (qs : Qubit[]) : Int {
-        // ...
-        return -1;
+        
+        // Joint measurement would be over two axis?
+
+        // You probably just want to measure the first qubit
+        if (M(qs[0]) == Zero)
+        {
+            if (M(qs[1]) == Zero)
+            {
+                return 0; 
+            }
+            else 
+            {
+                return 1; 
+            }
+        }
+        else 
+        {
+            if (M(qs[1]) == Zero)
+            {
+                return 2; 
+            }
+            else 
+            {
+                return 3; 
+            }
+        }
     }
     
     
@@ -123,7 +233,27 @@ namespace Quantum.Kata.Measurements {
     // Example: for bit strings [false, true, false] and [false, false, true]
     //          return 0 corresponds to state |010⟩, and return 1 corresponds to state |001⟩.
     operation TwoBitstringsMeasurement (qs : Qubit[], bits1 : Bool[], bits2 : Bool[]) : Int {
-        // ...
+        
+        
+        for (i in 0 .. Length(qs)-1)
+        {
+            if (bits1[i] != bits2[i])
+            {
+                let result = M(qs[i]); 
+
+                if ((result == One && bits1[i]) || 
+                    (result == Zero && not bits1[i]))
+                {
+                    return 0; 
+                }
+                else 
+                {
+                    return 1; 
+                }
+                
+            }
+        }
+
         return -1;
     }
     
@@ -136,8 +266,16 @@ namespace Quantum.Kata.Measurements {
     //         1 if they were in W state.
     // The state of the qubits at the end of the operation does not matter.
     operation AllZerosOrWState (qs : Qubit[]) : Int {
-        // ...
-        return -1;
+        
+        for (i in 0 .. Length(qs)-1)
+        {
+            if (M(qs[i]) == One)
+            {
+                return 1; 
+            }
+        }
+
+        return 0;
     }
     
     
@@ -149,8 +287,18 @@ namespace Quantum.Kata.Measurements {
     //         1 if they were in W state.
     // The state of the qubits at the end of the operation does not matter.
     operation GHZOrWState (qs : Qubit[]) : Int {
-        // ...
-        return -1;
+
+        let first = M(qs[0]); 
+
+        for (i in 1 .. Length(qs)-1)
+        {
+            if (M(qs[i]) != first)
+            {
+                return 1; 
+            }
+        }
+
+        return 0;
     }
     
     
@@ -168,12 +316,62 @@ namespace Quantum.Kata.Measurements {
     operation BellState (qs : Qubit[]) : Int {
         // Hint: you need to use 2-qubit gates to solve this task
         
-        // ...
-        return -1;
+        // Implements: https://arxiv.org/pdf/quant-ph/0504183.pdf
+        
+        mutable first = Zero;  
+        mutable second = Zero;  
+
+        using (a2 = Qubit[2])
+        {
+            H(a2[0]); 
+
+            CNOT(a2[0], qs[0]); 
+            CNOT(a2[0], qs[1]); 
+            H(a2[0]); 
+
+            set first = M(a2[0]); 
+
+            H(qs[0]); 
+            H(qs[1]); 
+            H(a2[1]); 
+
+            CNOT(a2[1], qs[0]); 
+            CNOT(a2[1], qs[1]); 
+
+            H(qs[0]); 
+            H(qs[1]); 
+            H(a2[1]); 
+
+            set second = M(a2[1]); 
+
+            // Cleanup 
+            Reset(a2[0]); 
+            Reset(a2[1]); 
+        }
+
+        if (first == Zero && second == Zero)
+        {
+            return 0; 
+        }
+        elif (first == One && second == Zero)
+        {
+            return 1; 
+        }
+        elif (first == Zero && second == One)
+        {
+            return 2; 
+        }
+        else 
+        {
+            return 3; 
+        }
+
+        return 0;
+
     }
     
     
-    // Task 1.11*. Distinguish four orthogonal 2-qubit states
+    // Task 1.11*. Distinguish four orthogonal 2-qubit states;
     // Input: two qubits (stored in an array) which are guaranteed to be in one of the four orthogonal states:
     //         |S0⟩ = (|00⟩ + |01⟩ + |10⟩ + |11⟩) / 2
     //         |S1⟩ = (|00⟩ - |01⟩ + |10⟩ - |11⟩) / 2
