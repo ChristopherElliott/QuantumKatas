@@ -317,7 +317,7 @@ namespace Quantum.Kata.Measurements {
         // Hint: you need to use 2-qubit gates to solve this task
         
         // Implements: https://arxiv.org/pdf/quant-ph/0504183.pdf
-        
+
         mutable first = Zero;  
         mutable second = Zero;  
 
@@ -329,6 +329,8 @@ namespace Quantum.Kata.Measurements {
             CNOT(a2[0], qs[1]); 
             H(a2[0]); 
 
+            // Splits the possible results into two groups: 
+            // |Φ⁺⟩ |Ψ⁺⟩    vs.   |Φ⁻⟩ |Ψ⁻⟩
             set first = M(a2[0]); 
 
             H(qs[0]); 
